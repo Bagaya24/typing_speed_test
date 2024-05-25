@@ -1,3 +1,4 @@
+import time
 import tkinter as tk
 from tkinter import ttk
 import tkinter.messagebox as message
@@ -49,9 +50,14 @@ essence, cafés embody a haven where society's complexities are navigated throug
 profound human connections."""
 }
 
+number_letter = 1
+temps_initial = 0
+temps_ecouler = 0
+temps_moyen = 0
+list_temps = []
+
 
 # ----------fonction----------------- #
-
 def compte_a_rebour(count):
     count_min = math.floor(count / 60)
     count_sec = count % 60
@@ -63,6 +69,12 @@ def compte_a_rebour(count):
     else:
         message.showinfo("Finish", "The time is over")
         win.destroy()
+
+
+def chronometer():
+    global temps_initial, temps_ecouler
+    temps_ecouler = round(time.time() - temps_initial, 3)
+    win.after(100, chronometer)
 
 
 def select_level(event):
@@ -85,20 +97,22 @@ def select_level(event):
     win.after(1000, compte_a_rebour, 60 * 5)
 
 
-number_letter = 1
-
-
 def color_the_letters(event):
-    global number_letter
+    global number_letter, temps_initial, temps_moyen, list_temps
     try:
         if globals()[f"lb_text_challenge{number_letter}"].cget("text").lower() == event.keysym:
             globals()[f"lb_text_challenge{number_letter}"].config(fg="green")
         else:
             globals()[f"lb_text_challenge{number_letter}"].config(fg="red")
     except KeyError:
-        message.showwarning("Finish", "No more letter")
+        temps_moyen = round(sum(list_temps)/len(list_temps), 3)
+        message.showinfo("Finish", f"Your mean time is {temps_moyen} sec")
         win.destroy()
+
+    temps_initial = time.time()
+    list_temps.append(temps_ecouler)
     number_letter += 1
+    chronometer()
 
 
 # ------------GUI--------------------- #
@@ -112,6 +126,7 @@ lb_level.grid(row=0, column=0)
 cmb_level = ttk.Combobox(container_menu, width=10)
 cmb_level.bind('<<ComboboxSelected>>', select_level)
 cmb_level['values'] = ("Easy", "Medium", "Hard")
+cmb_level["state"] = "readonly"
 cmb_level.grid(row=0, column=1, padx=10)
 
 lb_chrono = tk.Label(container_menu, text="Chrono: ")
